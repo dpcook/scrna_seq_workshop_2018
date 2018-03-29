@@ -5,16 +5,17 @@ output:
     toc: true
 ---
 
-#Dependencies
+# Dependencies
 
-#Load processed data
+# Load processed data
 
-#Clustering
+# Clustering
 
-#Identifying markers
+# Identifying markers
 
-#Pseudotime analysis
+# Pseudotime analysis
 I want to see if I can fit this in here. Any trajectories exist in PBMCs?
 
-#Functional enrichment (GO Term and Pathway analysis)
+# Functional enrichment (GO Term and Pathway analysis)
+
 

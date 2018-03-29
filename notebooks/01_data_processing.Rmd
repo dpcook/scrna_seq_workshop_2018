@@ -5,22 +5,22 @@ output:
     toc: true
 ---
 
-#Dependencies
+# Dependencies
 ```{r}
 library(scater)
 library(Seurat)
 library(dplyr)
 ```
 
-#Get the data
+# Get the data
 ```{r}
 pbmc.data <- Read10X(data.dir = "../data/filtered_gene_bc_matrices/hg19/")
 ```
 
-#QC Metrics
+# QC Metrics
 
-#Data filtering
+# Data filtering
 
-#Data normalization
+# Data normalization
 
 

@@ -1,0 +1,26 @@
+---
+title: "scRNA-Seq Tutorial Part 1: Data QC and Processing"
+output:
+  github_document:
+    toc: true
+---
+
+#Dependencies
+```{r}
+library(scater)
+library(Seurat)
+library(dplyr)
+```
+
+#Get the data
+```{r}
+pbmc.data <- Read10X(data.dir = "../data/filtered_gene_bc_matrices/hg19/")
+```
+
+#QC Metrics
+
+#Data filtering
+
+#Data normalization
+
+

@@ -1,0 +1,14 @@
+scRNA-Seq Tutorial Part 0: Getting ready
+================
+
+# Why did we do scRNA-seq and what do we hope to get from it?
+
+scRNA-Seq results in some pretty massive datasets and without clear
+objectives from the start, it can be easy to get lost in the data,
+mindlessly flipping from plot to plot, waiting for something to jump out
+at you.
+
+  - What cell types exist in PBMCs? \*What are the proportions of each
+    cell type?
+  - What genes are unique markers for each population?
+  - Can we identify phenotypic plasticity within certain cell types?

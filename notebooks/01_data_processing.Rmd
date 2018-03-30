@@ -7,20 +7,139 @@ output:
 
 # Dependencies
 ```{r}
-library(scater)
 library(Seurat)
 library(dplyr)
+library(viridis)
 ```
 
-# Get the data
+# Load the data
 ```{r}
 pbmc.data <- Read10X(data.dir = "../data/filtered_gene_bc_matrices/hg19/")
+head(rownames(pbmc.data))
+head(colnames(pbmc.data))
 ```
 
-# QC Metrics
+```{r}
+pbmc <- CreateSeuratObject(raw.data = pbmc.data, min.cells = 3, project = "PBMC")
+```
 
-# Data filtering
+The min.cells option will remove genes whose expression is detected in <3 cells. This just helps clean up the data set.
 
-# Data normalization
+# The importance of QC, filtering, and appropriate normalization
+It's tempting to jump right into the analysis and look at our data.
 
+```{r}
+pbmc <- NormalizeData(object = pbmc, normalization.method = "LogNormalize")
+pbmc <- ScaleData(pbmc)
+pbmc <- RunPCA(pbmc, pc.genes=rownames(pbmc.data))
+PCAPlot(pbmc)
+```
+
+But let's look into what might contribute to the shape of this PCA plot
+```{r}
+FeaturePlot(pbmc, features.plot=c("nUMI", "nGene"), reduction.use="pca", cols.use=viridis(100), 
+            max.cutoff="q95")
+```
+
+PC2 directly correlates with the number of UMIs measured from each cell, giving an artificial appearance of a trajectory/phenotypic continuum.
+
+# Quality control
+
+```{r}
+mito.genes <- grep(pattern = "^MT-", x = rownames(x = pbmc@data), value = TRUE)
+percent.mito <- Matrix::colSums(pbmc@raw.data[mito.genes, ])/Matrix::colSums(pbmc@raw.data)
+
+# AddMetaData adds columns to object@meta.data, and is a great place to
+# stash QC stats
+pbmc <- AddMetaData(object = pbmc, metadata = percent.mito, col.name = "percent.mito")
+VlnPlot(object = pbmc, features.plot = c("nGene", "nUMI", "percent.mito"), nCol = 3)
+```
+
+```{r}
+# GenePlot is typically used to visualize gene-gene relationships, but can
+# be used for anything calculated by the object, i.e. columns in
+# object@meta.data, PC scores etc.  Since there is a rare subset of cells
+# with an outlier level of high mitochondrial percentage and also low UMI
+# content, we filter these as well
+par(mfrow = c(1, 2))
+GenePlot(object = pbmc, gene1 = "nUMI", gene2 = "percent.mito")
+GenePlot(object = pbmc, gene1 = "nUMI", gene2 = "nGene")
+```
+
+# Filtering
+```{r}
+# We filter out cells that have unique gene counts over 2,500 or less than
+# 200 Note that low.thresholds and high.thresholds are used to define a
+# 'gate'.  -Inf and Inf should be used if you don't want a lower or upper
+# threshold.
+pbmc <- FilterCells(object = pbmc, subset.names = c("nGene", "percent.mito"), 
+    low.thresholds = c(200, -Inf), high.thresholds = c(2500, 0.05))
+```
+
+# Normalization
+```{r}
+pbmc <- NormalizeData(object = pbmc, normalization.method = "LogNormalize", 
+    scale.factor = 10000)
+```
+
+# Identifying genes with variable expression across cells
+```{r}
+pbmc <- FindVariableGenes(object = pbmc, mean.function = ExpMean, dispersion.function = LogVMR, 
+    x.low.cutoff = 0.0125, x.high.cutoff = 5, y.cutoff = 0.5)
+```
+
+```{r}
+length(x = pbmc@var.genes)
+```
+
+# Regressing out technical variables
+
+```{r}
+pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
+```
+
+# Cell Cycle Assignment
+At this point, out data may be fine, but cell cycle can be a source of variation in the data the confounds the biological variation of interest. It can be good to perform an assignment and just keep track of how it contributes to structure in downstream analysis. If it seems to mask structure of interest, we can remove the effect of cell cycle from the data.
+
+Cell cycle genes are quite conserved across cell types and species. We can use a public gene list from the Regev lab (Tirosh et al, 2015; accessed from the Seurat website) to define cell cycle genes. I've included the file in this github repo, so we don't have to worry about going and downloading it.
+
+```{r}
+cc.genes <- readLines(con = "../data/regev_lab_cell_cycle_genes.txt")
+#Split these genes into S markers and G2M markers
+s.genes <- cc.genes[1:43]
+g2m.genes <- cc.genes[44:97]
+```
+
+```{r}
+pbmc <- CellCycleScoring(object = pbmc, s.genes = s.genes, g2m.genes = g2m.genes, set.ident = TRUE)
+```
+
+S and G2M scores, as well as the phase classification have now been added to pbmc@meta.data
+
+```{r}
+head(pbmc@meta.data)
+```
+
+# Check out the data
+```{r}
+pbmc <- RunPCA(object = pbmc, pc.genes = pbmc@var.genes, do.print = TRUE, pcs.print = 1:5, 
+    genes.print = 5)
+```
+```{r}
+PCAPlot(object = pbmc)
+```
+
+Perfect, there doesn't appear to be any meaningful structure in the first two principal components that correlates with cell cycle stage, suggesting we don't have to regress it out as well.
+
+And to confirm that our normalization worked, we should double check that the PCs aren't correlated with nUMI any more
+
+```{r}
+FeaturePlot(pbmc, features.plot=c("nUMI", "nGene"), reduction.use="pca", cols.use=viridis(100), 
+            max.cutoff="q95")
+```
+
+# Save point
+```{r}
+saveRDS(pbmc, file="../data/pbmc_processed.rds")
+```
 

@@ -83,6 +83,9 @@ pbmc <- NormalizeData(object = pbmc, normalization.method = "LogNormalize",
 ```
 
 # Identifying genes with variable expression across cells
+
+With the large amount of data that we get in scRNA-Seq data, we can look for biological signal by scanning across all cells and looking for genes that display a higher amount of variation than you would expect to be attributable to noise 
+
 ```{r}
 pbmc <- FindVariableGenes(object = pbmc, mean.function = ExpMean, dispersion.function = LogVMR, 
     x.low.cutoff = 0.0125, x.high.cutoff = 5, y.cutoff = 0.5)

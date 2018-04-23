@@ -44,19 +44,19 @@ library(viridis)
 # Load the data
 
 ``` r
-pbmc.data <- Read10X(data.dir = "../data/filtered_gene_bc_matrices/hg19/")
+pbmc.data <- Read10X(data.dir = "../data/filtered_gene_bc_matrices_8kpbmc/GRCh38/")
 head(rownames(pbmc.data))
 ```
 
-    ## [1] "MIR1302-10"   "FAM138A"      "OR4F5"        "RP11-34P13.7"
-    ## [5] "RP11-34P13.8" "AL627309.1"
+    ## [1] "RP11-34P13.3"  "FAM138A"       "OR4F5"         "RP11-34P13.7" 
+    ## [5] "RP11-34P13.8"  "RP11-34P13.14"
 
 ``` r
 head(colnames(pbmc.data))
 ```
 
-    ## [1] "AAACATACAACCAC" "AAACATTGAGCTAC" "AAACATTGATCAGC" "AAACCGTGCTTCCG"
-    ## [5] "AAACCGTGTATGCG" "AAACGCACTGGTAC"
+    ## [1] "AAACCTGAGCATCATC" "AAACCTGAGCTAACTC" "AAACCTGAGCTAGTGG"
+    ## [4] "AAACCTGCACATTAGC" "AAACCTGCACTGTTAG" "AAACCTGCATAGTAAG"
 
 ``` r
 pbmc <- CreateSeuratObject(raw.data = pbmc.data, min.cells = 3, project = "PBMC")
@@ -80,6 +80,42 @@ pbmc <- ScaleData(pbmc)
       |                                                                       
       |                                                                 |   0%
       |                                                                       
+      |===                                                              |   5%
+      |                                                                       
+      |=======                                                          |  11%
+      |                                                                       
+      |==========                                                       |  16%
+      |                                                                       
+      |==============                                                   |  21%
+      |                                                                       
+      |=================                                                |  26%
+      |                                                                       
+      |=====================                                            |  32%
+      |                                                                       
+      |========================                                         |  37%
+      |                                                                       
+      |===========================                                      |  42%
+      |                                                                       
+      |===============================                                  |  47%
+      |                                                                       
+      |==================================                               |  53%
+      |                                                                       
+      |======================================                           |  58%
+      |                                                                       
+      |=========================================                        |  63%
+      |                                                                       
+      |============================================                     |  68%
+      |                                                                       
+      |================================================                 |  74%
+      |                                                                       
+      |===================================================              |  79%
+      |                                                                       
+      |=======================================================          |  84%
+      |                                                                       
+      |==========================================================       |  89%
+      |                                                                       
+      |==============================================================   |  95%
+      |                                                                       
       |=================================================================| 100%
 
 ``` r
@@ -87,78 +123,84 @@ pbmc <- RunPCA(pbmc, pc.genes=rownames(pbmc.data))
 ```
 
     ## [1] "PC1"
-    ##  [1] "CST3"     "TYROBP"   "FCER1G"   "LST1"     "FTL"      "AIF1"    
-    ##  [7] "FTH1"     "FCN1"     "TYMP"     "LYZ"      "LGALS1"   "S100A9"  
-    ## [13] "CFD"      "CD68"     "SERPINA1" "CTSS"     "SPI1"     "IFITM3"  
-    ## [19] "S100A8"   "SAT1"     "LGALS2"   "PSAP"     "IFI30"    "S100A11" 
-    ## [25] "CFP"      "COTL1"    "NPC2"     "GRN"      "LGALS3"   "GSTP1"   
+    ##  [1] "RPS27"  "RPS29"  "RPL23A" "RPL3"   "RPS3"   "RPS27A" "RPL31" 
+    ##  [8] "RPS6"   "RPS25"  "RPLP2"  "RPL30"  "RPL13A" "MALAT1" "RPSA"  
+    ## [15] "RPS18"  "LTB"    "RPS15A" "EEF1A1" "RPS12"  "RPL19"  "RPL27A"
+    ## [22] "TRAC"   "RPL13"  "RPS20"  "CD3E"   "RPS5"   "CD3D"   "RPL41" 
+    ## [29] "RPS4X"  "RPS19" 
     ## [1] ""
-    ##  [1] "MALAT1"  "RPS27A"  "RPS27"   "RPL23A"  "RPL3"    "RPL13A"  "RPS3A"  
-    ##  [8] "RPL21"   "RPL9"    "LTB"     "RPS6"    "RPS3"    "RPSA"    "CD3D"   
-    ## [15] "PTPRCAP" "RPS25"   "RPL31"   "RPS18"   "RPS12"   "RPL30"   "RPS15A" 
-    ## [22] "RPL13"   "IL32"    "RPLP2"   "RPL27A"  "RPS23"   "RPS29"   "CD3E"   
-    ## [29] "LDHB"    "RPS13"  
+    ##  [1] "TYROBP"        "CST3"          "LYZ"           "MNDA"         
+    ##  [5] "CSTA"          "LST1"          "FCN1"          "FTL"          
+    ##  [9] "FCER1G"        "AIF1"          "CTSS"          "TYMP"         
+    ## [13] "S100A9"        "LGALS1"        "RP11-1143G9.4" "FTH1"         
+    ## [17] "S100A8"        "LGALS2"        "SERPINA1"      "S100A11"      
+    ## [21] "FGL2"          "PSAP"          "SPI1"          "GPX1"         
+    ## [25] "GRN"           "CFD"           "AP1S2"         "S100A6"       
+    ## [29] "VCAN"          "MS4A6A"       
     ## [1] ""
     ## [1] ""
     ## [1] "PC2"
-    ##  [1] "NKG7"    "PRF1"    "CST7"    "B2M"     "GZMA"    "GZMB"    "FGFBP2" 
-    ##  [8] "CTSW"    "HLA-C"   "GNLY"    "HLA-A"   "GZMH"    "FCGR3A"  "CD247"  
-    ## [15] "SPON2"   "CCL5"    "GZMM"    "CCL4"    "KLRD1"   "AKR1C3"  "MYL12A" 
-    ## [22] "CLIC3"   "XCL2"    "RARRES3" "IL32"    "HOPX"    "IFITM1"  "CTSC"   
-    ## [29] "CFL1"    "PFN1"   
+    ##  [1] "NKG7"     "GZMA"     "CST7"     "PRF1"     "B2M"      "CTSW"    
+    ##  [7] "KLRD1"    "HLA-B"    "CCL5"     "HOPX"     "HLA-C"    "FGFBP2"  
+    ## [13] "HLA-A"    "GNLY"     "KLRF1"    "GZMB"     "SPON2"    "MATK"    
+    ## [19] "KLRB1"    "C12orf75" "CLIC3"    "CMC1"     "CD160"    "GZMH"    
+    ## [25] "GZMM"     "CCL4"     "KLRG1"    "CD99"     "HCST"     "MYL12A"  
     ## [1] ""
-    ##  [1] "RPL32"     "HLA-DRA"   "CD79A"     "RPL18A"    "TCL1A"    
-    ##  [6] "S100A8"    "MS4A1"     "RPL13"     "LINC00926" "RPL11"    
-    ## [11] "RPS9"      "S100A9"    "HLA-DQB1"  "LGALS2"    "VPREB3"   
-    ## [16] "HLA-DRB1"  "HLA-DQA1"  "HLA-DMA"   "LY86"      "RPL12"    
-    ## [21] "NCF1"      "RPL28"     "FCER2"     "RPLP1"     "CD74"     
-    ## [26] "HLA-DPB1"  "RPL13A"    "CD79B"     "RPL8"      "FTL"      
+    ##  [1] "RPL39"     "RPL18A"    "RPL34"     "RPL32"     "CD79A"    
+    ##  [6] "IGHD"      "MS4A1"     "RPL21"     "IGHM"      "RPL12"    
+    ## [11] "RPS13"     "RPS3A"     "RPL8"      "RPL13"     "LINC00926"
+    ## [16] "HLA-DRA"   "RPL26"     "CD79B"     "RPL11"     "RPS9"     
+    ## [21] "CD22"      "MEF2C"     "TCL1A"     "RPL7"      "BANK1"    
+    ## [26] "NCF1"      "IGKC"      "RPS23"     "FCER2"     "VPREB3"   
     ## [1] ""
     ## [1] ""
     ## [1] "PC3"
-    ##  [1] "RPS2"   "RPL10"  "RPL18A" "EEF1A1" "RPS12"  "RPL11"  "RPL32" 
-    ##  [8] "RPL28"  "RPL12"  "RPL19"  "RPS5"   "RPS18"  "RPS10"  "RPS14" 
-    ## [15] "RPS16"  "RPS19"  "RPS6"   "RPL8"   "RPL13"  "RPL5"   "GNB2L1"
-    ## [22] "RPLP2"  "RPS23"  "RPLP1"  "RPL29"  "RPLP0"  "RPL10A" "RPS13" 
-    ## [29] "RPL14"  "RPL18" 
+    ##  [1] "CD79A"     "CD79B"     "MS4A1"     "IGHM"      "CD74"     
+    ##  [6] "IGHD"      "HLA-DPA1"  "HLA-DPB1"  "IGKC"      "TCL1A"    
+    ## [11] "BANK1"     "HLA-DQB1"  "LINC00926" "CD22"      "HLA-DQA1" 
+    ## [16] "FAM129C"   "VPREB3"    "TNFRSF13C" "SPIB"      "HLA-DRA"  
+    ## [21] "IRF8"      "HLA-DRB1"  "RALGPS2"   "FCER2"     "TSPAN13"  
+    ## [26] "HLA-DMB"   "CYB561A3"  "HLA-DOB"   "CD37"      "FCRLA"    
     ## [1] ""
-    ##  [1] "GZMB"       "NKG7"       "CST7"       "FGFBP2"     "PRF1"      
-    ##  [6] "CCL5"       "GZMA"       "GNLY"       "CCL4"       "SPON2"     
-    ## [11] "PPBP"       "PF4"        "CTSW"       "SDPR"       "GZMH"      
-    ## [16] "GNG11"      "SPARC"      "HIST1H2AC"  "CLIC3"      "GP9"       
-    ## [21] "KLRD1"      "S1PR5"      "PRSS23"     "AP001189.4" "CD9"       
-    ## [26] "ITGA2B"     "XCL2"       "CLU"        "NRGN"       "TUBB1"     
+    ##  [1] "TPT1"     "TRAC"     "FYB"      "CD3D"     "CD3E"     "RPS14"   
+    ##  [7] "IL32"     "IL7R"     "S100A6"   "RPL34"    "LEF1"     "HCST"    
+    ## [13] "LDHB"     "TMSB4X"   "CD3G"     "LEPROTL1" "RPL7"     "GIMAP7"  
+    ## [19] "ZFP36L2"  "S100A12"  "NOSIP"    "ITM2B"    "TCF7"     "VIM"     
+    ## [25] "RPL32"    "GIMAP4"   "S100A8"   "UQCRB"    "JUNB"     "MAL"     
     ## [1] ""
     ## [1] ""
     ## [1] "PC4"
-    ##  [1] "CD3D"      "S100A4"    "S100A6"    "TMSB4X"    "IL32"     
-    ##  [6] "CD3E"      "LDHB"      "IL7R"      "VIM"       "GIMAP7"   
-    ## [11] "NOSIP"     "ANXA1"     "S100A10"   "S100A8"    "ZFP36L2"  
-    ## [16] "FYB"       "GIMAP4"    "RPS14"     "CD2"       "S100A9"   
-    ## [21] "FOS"       "S100A11"   "RGCC"      "HCST"      "RGS10"    
-    ## [26] "LCK"       "GIMAP1"    "LEF1"      "PRKCQ-AS1" "TRAT1"    
+    ##  [1] "NKG7"   "CST7"   "KLRD1"  "GZMA"   "PRF1"   "FGFBP2" "KLRF1" 
+    ##  [8] "CCL5"   "CCL4"   "GNLY"   "SPON2"  "HOPX"   "CD160"  "GZMH"  
+    ## [15] "XCL2"   "S1PR5"  "TRDC"   "PTGDR"  "ADGRG1" "CTSW"   "CMC1"  
+    ## [22] "MATK"   "TTC38"  "PRSS23" "IL2RB"  "B2M"    "TBX21"  "FCRL6" 
+    ## [29] "KLRG1"  "PYHIN1"
     ## [1] ""
-    ##  [1] "CD79A"     "HLA-DQA1"  "CD79B"     "MS4A1"     "HLA-DQB1" 
-    ##  [6] "TCL1A"     "CD74"      "HLA-DPB1"  "LINC00926" "HLA-DRA"  
-    ## [11] "VPREB3"    "HLA-DPA1"  "HLA-DQA2"  "HLA-DRB1"  "HLA-DRB5" 
-    ## [16] "BANK1"     "FCER2"     "TSPAN13"   "HLA-DMA"   "HVCN1"    
-    ## [21] "FCRLA"     "HLA-DMB"   "HLA-DOB"   "PDLIM1"    "PKIG"     
-    ## [26] "SPIB"      "CD72"      "EAF2"      "CD37"      "KIAA0125" 
+    ##  [1] "RPS2"   "EEF1A1" "RPS8"   "RPS13"  "RPS3A"  "RPS18"  "RPS23" 
+    ##  [8] "RPS12"  "RPL10"  "RPL4"   "RPL22"  "RPS4X"  "FCER1A" "RPL5"  
+    ## [15] "PABPC1" "LDHB"   "RPLP0"  "RPL11"  "RPS6"   "RPL9"   "EEF1B2"
+    ## [22] "RPL19"  "RPL6"   "RPS14"  "RPL28"  "RPL10A" "RPL37"  "GNB2L1"
+    ## [29] "RPS15A" "RPS16" 
     ## [1] ""
     ## [1] ""
     ## [1] "PC5"
-    ##  [1] "NKG7"   "FGFBP2" "CST7"   "GZMB"   "PRF1"   "GNLY"   "GZMA"  
-    ##  [8] "CCL4"   "SPON2"  "GZMH"   "CTSW"   "RPL10"  "KLRD1"  "CYBA"  
-    ## [15] "RPS2"   "CLIC3"  "XCL2"   "PRSS23" "IGFBP7" "TTC38"  "AKR1C3"
-    ## [22] "S1PR5"  "HOPX"   "GZMM"   "RPL6"   "CCL3"   "TMSB10" "TYROBP"
-    ## [29] "GPR56"  "MATK"  
+    ##  [1] "LILRA4"       "LRRC26"       "SERPINF1"     "CLEC4C"      
+    ##  [5] "PTCRA"        "IL3RA"        "SCT"          "DERL3"       
+    ##  [9] "LINC00996"    "TPM2"         "DNASE1L3"     "TNFRSF21"    
+    ## [13] "MAP1A"        "SMPD3"        "JCHAIN"       "LAMP5"       
+    ## [17] "PPP1R14B"     "PTPRS"        "RP11-73G16.2" "SMIM5"       
+    ## [21] "ITM2C"        "UGCG"         "MYBL2"        "SCAMP5"      
+    ## [25] "GZMB"         "ASIP"         "APP"          "PLD4"        
+    ## [29] "C1orf186"     "MZB1"        
     ## [1] ""
-    ##  [1] "SDPR"       "PF4"        "PPBP"       "GNG11"      "SPARC"     
-    ##  [6] "HIST1H2AC"  "GP9"        "TUBB1"      "RGS18"      "NRGN"      
-    ## [11] "CLU"        "AP001189.4" "ITGA2B"     "PTCRA"      "CA2"       
-    ## [16] "CD9"        "TMEM40"     "MMD"        "ACRBP"      "NGFRAP1"   
-    ## [21] "TREML1"     "MPP1"       "F13A1"      "RUFY1"      "CMTM5"     
-    ## [26] "TSC22D1"    "PTGS1"      "SEPT5"      "PGRMC1"     "LY6G6F"    
+    ##  [1] "CD52"           "CDKN1C"         "FCGR3A"         "RPL8"          
+    ##  [5] "HES4"           "MS4A7"          "SIGLEC10"       "TCF7L2"        
+    ##  [9] "MTSS1"          "CD79B"          "HCK"            "ABI3"          
+    ## [13] "IFITM3"         "FAM26F"         "COTL1"          "LRRC25"        
+    ## [17] "RPS19"          "LY6E"           "LINC01272"      "POU2F2"        
+    ## [21] "PILRA"          "IFI30"          "IFITM2"         "LIMD2"         
+    ## [25] "CD48"           "RP11-1008C21.1" "HMOX1"          "BATF3"         
+    ## [29] "CSTB"           "ZNF703"        
     ## [1] ""
     ## [1] ""
 
@@ -173,7 +215,7 @@ plot
 
 ``` r
 FeaturePlot(pbmc, features.plot=c("nUMI", "nGene"), reduction.use="pca", cols.use=viridis(100), 
-            max.cutoff="q95")
+            max.cutoff="q98")
 ```
 
 ![](01_data_processing_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
@@ -212,12 +254,12 @@ GenePlot(object = pbmc, gene1 = "nUMI", gene2 = "nGene")
 # Filtering
 
 ``` r
-# We filter out cells that have unique gene counts over 2,500 or less than
+# We filter out cells that have unique gene counts over 4000 or less than
 # 200 Note that low.thresholds and high.thresholds are used to define a
 # 'gate'.  -Inf and Inf should be used if you don't want a lower or upper
 # threshold.
 pbmc <- FilterCells(object = pbmc, subset.names = c("nGene", "percent.mito"), 
-    low.thresholds = c(200, -Inf), high.thresholds = c(2500, 0.05))
+    low.thresholds = c(200, -Inf), high.thresholds = c(4000, 0.075))
 ```
 
 # Normalization
@@ -228,6 +270,12 @@ pbmc <- NormalizeData(object = pbmc, normalization.method = "LogNormalize",
 ```
 
 # Identifying genes with variable expression across cells
+
+With the large amount of data that we get in scRNA-Seq data, we can look
+for biological signal by scanning across all cells and looking for genes
+that display a higher amount of variation than you would expect to be
+attributable to
+noise
 
 ``` r
 pbmc <- FindVariableGenes(object = pbmc, mean.function = ExpMean, dispersion.function = LogVMR, 
@@ -240,7 +288,7 @@ pbmc <- FindVariableGenes(object = pbmc, mean.function = ExpMean, dispersion.fun
 length(x = pbmc@var.genes)
 ```
 
-    ## [1] 1858
+    ## [1] 1406
 
 # Regressing out technical variables
 
@@ -267,6 +315,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |===                                                              |   5%
       |                                                                       
+      |====                                                             |   5%
+      |                                                                       
       |====                                                             |   6%
       |                                                                       
       |====                                                             |   7%
@@ -276,6 +326,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |=====                                                            |   8%
       |                                                                       
       |======                                                           |   9%
+      |                                                                       
+      |======                                                           |  10%
       |                                                                       
       |=======                                                          |  10%
       |                                                                       
@@ -291,6 +343,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |==========                                                       |  16%
       |                                                                       
+      |===========                                                      |  16%
+      |                                                                       
       |===========                                                      |  17%
       |                                                                       
       |============                                                     |  18%
@@ -299,11 +353,11 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |=============                                                    |  20%
       |                                                                       
+      |=============                                                    |  21%
+      |                                                                       
       |==============                                                   |  21%
       |                                                                       
       |==============                                                   |  22%
-      |                                                                       
-      |===============                                                  |  22%
       |                                                                       
       |===============                                                  |  23%
       |                                                                       
@@ -315,6 +369,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |=================                                                |  27%
       |                                                                       
+      |==================                                               |  27%
+      |                                                                       
       |==================                                               |  28%
       |                                                                       
       |===================                                              |  29%
@@ -324,6 +380,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |====================                                             |  30%
       |                                                                       
       |====================                                             |  31%
+      |                                                                       
+      |====================                                             |  32%
       |                                                                       
       |=====================                                            |  32%
       |                                                                       
@@ -355,6 +413,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |===========================                                      |  42%
       |                                                                       
+      |============================                                     |  42%
+      |                                                                       
       |============================                                     |  43%
       |                                                                       
       |=============================                                    |  44%
@@ -362,6 +422,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |=============================                                    |  45%
       |                                                                       
       |==============================                                   |  46%
+      |                                                                       
+      |==============================                                   |  47%
       |                                                                       
       |===============================                                  |  47%
       |                                                                       
@@ -377,6 +439,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |==================================                               |  53%
       |                                                                       
+      |===================================                              |  53%
+      |                                                                       
       |===================================                              |  54%
       |                                                                       
       |====================================                             |  55%
@@ -384,6 +448,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |====================================                             |  56%
       |                                                                       
       |=====================================                            |  57%
+      |                                                                       
+      |=====================================                            |  58%
       |                                                                       
       |======================================                           |  58%
       |                                                                       
@@ -415,6 +481,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |============================================                     |  68%
       |                                                                       
+      |=============================================                    |  68%
+      |                                                                       
       |=============================================                    |  69%
       |                                                                       
       |=============================================                    |  70%
@@ -424,6 +492,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |==============================================                   |  71%
       |                                                                       
       |===============================================                  |  72%
+      |                                                                       
+      |===============================================                  |  73%
       |                                                                       
       |================================================                 |  73%
       |                                                                       
@@ -435,11 +505,11 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |==================================================               |  77%
       |                                                                       
-      |==================================================               |  78%
-      |                                                                       
       |===================================================              |  78%
       |                                                                       
       |===================================================              |  79%
+      |                                                                       
+      |====================================================             |  79%
       |                                                                       
       |====================================================             |  80%
       |                                                                       
@@ -448,6 +518,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |=====================================================            |  82%
       |                                                                       
       |======================================================           |  83%
+      |                                                                       
+      |======================================================           |  84%
       |                                                                       
       |=======================================================          |  84%
       |                                                                       
@@ -463,6 +535,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |                                                                       
       |==========================================================       |  90%
       |                                                                       
+      |===========================================================      |  90%
+      |                                                                       
       |===========================================================      |  91%
       |                                                                       
       |============================================================     |  92%
@@ -472,6 +546,8 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |=============================================================    |  93%
       |                                                                       
       |=============================================================    |  94%
+      |                                                                       
+      |=============================================================    |  95%
       |                                                                       
       |==============================================================   |  95%
       |                                                                       
@@ -488,11 +564,47 @@ pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
       |=================================================================|  99%
       |                                                                       
       |=================================================================| 100%
-    ## Time Elapsed:  47.4836921691895 secs
+    ## Time Elapsed:  1.98883281548818 mins
     ## [1] "Scaling data matrix"
     ## 
       |                                                                       
       |                                                                 |   0%
+      |                                                                       
+      |===                                                              |   5%
+      |                                                                       
+      |=======                                                          |  11%
+      |                                                                       
+      |==========                                                       |  16%
+      |                                                                       
+      |==============                                                   |  21%
+      |                                                                       
+      |=================                                                |  26%
+      |                                                                       
+      |=====================                                            |  32%
+      |                                                                       
+      |========================                                         |  37%
+      |                                                                       
+      |===========================                                      |  42%
+      |                                                                       
+      |===============================                                  |  47%
+      |                                                                       
+      |==================================                               |  53%
+      |                                                                       
+      |======================================                           |  58%
+      |                                                                       
+      |=========================================                        |  63%
+      |                                                                       
+      |============================================                     |  68%
+      |                                                                       
+      |================================================                 |  74%
+      |                                                                       
+      |===================================================              |  79%
+      |                                                                       
+      |=======================================================          |  84%
+      |                                                                       
+      |==========================================================       |  89%
+      |                                                                       
+      |==============================================================   |  95%
       |                                                                       
       |=================================================================| 100%
 
@@ -529,57 +641,44 @@ added to <pbmc@meta.data>
 head(pbmc@meta.data)
 ```
 
-    ##                nGene nUMI orig.ident percent.mito      S.Score
-    ## AAACATACAACCAC   781 2421       PBMC  0.030177759  0.093645459
-    ## AAACATTGAGCTAC  1352 4903       PBMC  0.037935958 -0.024949477
-    ## AAACATTGATCAGC  1131 3149       PBMC  0.008897363 -0.008387319
-    ## AAACCGTGCTTCCG   960 2639       PBMC  0.017430845  0.033592976
-    ## AAACCGTGTATGCG   522  981       PBMC  0.012244898 -0.032763093
-    ## AAACGCACTGGTAC   782 2164       PBMC  0.016643551 -0.040598328
-    ##                   G2M.Score Phase old.ident
-    ## AAACATACAACCAC -0.039663192     S      PBMC
-    ## AAACATTGAGCTAC -0.049169581    G1      PBMC
-    ## AAACATTGATCAGC  0.061964023   G2M      PBMC
-    ## AAACCGTGCTTCCG  0.004171847     S      PBMC
-    ## AAACCGTGTATGCG  0.054265696   G2M      PBMC
-    ## AAACGCACTGGTAC -0.081420628    G1      PBMC
+    ##                  nGene nUMI orig.ident percent.mito      S.Score
+    ## AAACCTGAGCATCATC   871 2394       PBMC   0.03844547  0.038660381
+    ## AAACCTGAGCTAACTC   806 1694       PBMC   0.05726092 -0.045492768
+    ## AAACCTGAGCTAGTGG  1316 4520       PBMC   0.01946903  0.064165191
+    ## AAACCTGCACATTAGC   898 2788       PBMC   0.01398852  0.004157262
+    ## AAACCTGCACTGTTAG  1526 4667       PBMC   0.03622722 -0.035688862
+    ## AAACCTGCATAGTAAG  1495 4440       PBMC   0.03806306 -0.032881907
+    ##                    G2M.Score Phase old.ident
+    ## AAACCTGAGCATCATC -0.05109279     S      PBMC
+    ## AAACCTGAGCTAACTC  0.01815870   G2M      PBMC
+    ## AAACCTGAGCTAGTGG -0.02759118     S      PBMC
+    ## AAACCTGCACATTAGC  0.02519759   G2M      PBMC
+    ## AAACCTGCACTGTTAG -0.05457010    G1      PBMC
+    ## AAACCTGCATAGTAAG -0.03161909    G1      PBMC
 
 # Check out the data
 
 ``` r
-pbmc <- RunPCA(object = pbmc, pc.genes = pbmc@var.genes, do.print = TRUE, pcs.print = 1:5, 
-    genes.print = 5)
+pbmc <- RunPCA(object = pbmc, pc.genes = pbmc@var.genes, do.print = TRUE, 
+               pcs.print = 1:3, pcs.compute=50, genes.print = 3)
 ```
 
     ## [1] "PC1"
-    ## [1] "CST3"   "S100A9" "TYROBP" "FTL"    "LYZ"   
+    ## [1] "MNDA" "CSTA" "LYZ" 
     ## [1] ""
-    ## [1] "RPS27A"  "RPS3A"   "PTPRCAP" "RPL21"   "LTB"    
+    ## [1] "RPL23A" "RPL3"   "RPS3"  
     ## [1] ""
     ## [1] ""
     ## [1] "PC2"
-    ## [1] "CD79A"    "RPL18A"   "MS4A1"    "HLA-DQA1" "HLA-DQB1"
+    ## [1] "IL32" "TRAC" "CD7" 
     ## [1] ""
-    ## [1] "NKG7" "GZMB" "CST7" "PRF1" "GZMA"
+    ## [1] "CD79A" "MS4A1" "IGHD" 
     ## [1] ""
     ## [1] ""
     ## [1] "PC3"
-    ## [1] "RPL18A" "RPL13"  "S100A4" "RPL8"   "RPL21" 
+    ## [1] "RPL21"  "RPS18"  "EEF1A1"
     ## [1] ""
-    ## [1] "PF4"   "PPBP"  "SDPR"  "SPARC" "GNG11"
-    ## [1] ""
-    ## [1] ""
-    ## [1] "PC4"
-    ## [1] "CD79A"    "HLA-DQA1" "CD79B"    "CD74"     "MS4A1"   
-    ## [1] ""
-    ## [1] "IL32" "JUNB" "FYB"  "AQP3" "MAL" 
-    ## [1] ""
-    ## [1] ""
-    ## [1] "PC5"
-    ## [1] "FCGR3A"        "CTD-2006K23.1" "IFITM3"        "ABI3"         
-    ## [5] "CEBPB"        
-    ## [1] ""
-    ## [1] "FCER1A" "LGALS2" "MS4A6A" "S100A8" "FOLR3" 
+    ## [1] "NKG7"  "PRF1"  "KLRD1"
     ## [1] ""
     ## [1] ""
 
@@ -603,6 +702,9 @@ FeaturePlot(pbmc, features.plot=c("nUMI", "nGene"), reduction.use="pca", cols.us
 ```
 
 ![](01_data_processing_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+There’s an interesting distribution of UMI and gene counts here, but
+it’s not linearly related with PC1 or PC2, so we should be good to
+move ahead.
 
 # Save point
 

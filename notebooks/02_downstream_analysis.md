@@ -21,6 +21,21 @@ library(Seurat)
     ## Loading required package: Matrix
 
 ``` r
+library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
 library(viridis)
 ```
 
@@ -46,14 +61,23 @@ section)
 
 # Clustering
 
+We cluster on PCA space, but need to know how many PCs capture a
+reasonable amount of
+variation
+
+``` r
+PCElbowPlot(object = pbmc, num.pc=50)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
 ``` r
 pbmc <- FindClusters(object = pbmc, reduction.type = "pca", dims.use = 1:20, 
-    resolution = 0.6, print.output = 0, save.SNN = TRUE, random.seed=2018)
+    resolution = 0.4, print.output = 0, save.SNN = TRUE, random.seed=2018)
 ```
 
 Note that the resolution is a user-defined parameter and can be tweaked
-if necessary. 0.6-1.2 work well for a 3k cell dataset, but with more
-cells, the resolution parameter should also be increased.
+if necessary. Higher resolution finds more clusters.
 
 random.seed is just the seed of the random number generator. This allows
 us all to get the same result
@@ -67,23 +91,25 @@ time.
 PCAPlot(object = pbmc)
 ```
 
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 Which genes drive a cells position along the first few PCs? Let’s look
 at the genes with the highest loadings for the first few principal
-components
+components. We’ll also make it show up the top results for both positive
+and negative
+loadings.
 
 ``` r
-VizPCA(object = pbmc, pcs.use = 1:2)
+VizPCA(object = pbmc, pcs.use = 1:2, do.balanced=T)
 ```
 
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ``` r
-VizPCA(object = pbmc, pcs.use = 3:4)
+VizPCA(object = pbmc, pcs.use = 3:4, do.balanced=T)
 ```
 
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
 
 If we take the genes with the top loadings and colour a PCA plot by
 their expression, the relationship between PC loadings and expression
@@ -91,19 +117,19 @@ levels should become clear
 
 ``` r
 #PC1 genes
-FeaturePlot(pbmc, features.plot=c("RPS27A", "RPS3A", "CST3", "S100A9"), reduction.use="pca",
+FeaturePlot(pbmc, features.plot=c("RPL23A", "RPL3", "MNDA", "CSTA"), reduction.use="pca",
             cols.use=viridis(100))
 ```
 
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 #PC2 genes
-FeaturePlot(pbmc, features.plot=c("NKG7", "GZMB", "CD79A", "RPL18A"), reduction.use="pca",
+FeaturePlot(pbmc, features.plot=c("CD79A", "MS4A1", "IL32", "TRAC"), reduction.use="pca",
             cols.use=viridis(100))
 ```
 
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
 
 One problem with using PCA for complex data, however, is that it can
 only capture a limited amount of variation that exists in the data. You
@@ -112,14 +138,7 @@ clusters on the left of the plot actually overlap quite a bit (which
 would mean they’re crappy clusters if PCA was showing you everything).
 Part of this is because PCA is a linear dimensionality technique, and
 only so much variation can be captured by linear projections of the
-data. To demonstrate this, let’s look at standard deviation of the
-PCs:
-
-``` r
-PCElbowPlot(object = pbmc)
-```
-
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+data. This is apparent from the PC elbow plot above.
 
 We’ve only been visualizing PC1 and 2, which will always capture the
 most variation in the data, but you can see that PCs 3 and 4 also
@@ -133,7 +152,7 @@ We can make more plots, visualizing these components if we want:
 
 ``` r
 #PC3 genes from above
-FeaturePlot(pbmc, features.plot=c("PF4", "PPBP", "LY6G6F", "SNCA"), dim.1=3, dim.2=4,
+FeaturePlot(pbmc, features.plot=c("NKG7", "PRF1", "RPL21", "RPS18"), dim.1=3, dim.2=4,
             reduction.use="pca", cols.use=viridis(100))
 ```
 
@@ -141,7 +160,7 @@ FeaturePlot(pbmc, features.plot=c("PF4", "PPBP", "LY6G6F", "SNCA"), dim.1=3, dim
 
 ``` r
 #PC4 genes from above
-FeaturePlot(pbmc, features.plot=c("CD37", "PKIG", "CD79A", "HLA-DQA1"), dim.1=3, dim.2=4,
+FeaturePlot(pbmc, features.plot=c("TMSB10", "FCGR3A", "PTCRA", "SDPR"), dim.1=3, dim.2=4,
             reduction.use="pca", cols.use=viridis(100))
 ```
 
@@ -170,7 +189,7 @@ PCAPlot(pbmc, dim.1=3, dim.2=4)
 
 It doesn’t seem to be associated with any technical variable that we’ve
 measured, so perhaps it is something interesting. From here, we could
-take a look at the genes with the highest PC3 loadings and see if they
+take a look at the genes with the lowest PC4 loadings and see if they
 correspond with some specific immune cell type. We could also look to
 see if there are associated with something like apoptosis/cell stress.
 For now, we won’t get too worked about this and will continue with our
@@ -189,13 +208,13 @@ tSNE is slow and it’s often unreasonably to run it on the entire data
 set. To get around this, we first perform PCA, find how many PCs provide
 a significant amount of information (based on the elbow plot from
 above), and use the matrix of PC positions for each cell across those
-components. ie. we run tSNE on a matrix containing ~10 values (PC
-coordinates) for each of the 3k cells, rather than the thousands of gene
+components. ie. we run tSNE on a matrix containing ~30 values (PC
+coordinates) for each of the 8k cells, rather than the thousands of gene
 expression
 values.
 
 ``` r
-pbmc <- RunTSNE(object = pbmc, dims.use = 1:10, do.fast = TRUE)
+pbmc <- RunTSNE(object = pbmc, dims.use = 1:20, do.fast = TRUE)
 ```
 
 ``` r
@@ -204,38 +223,104 @@ TSNEPlot(pbmc)
 
 ![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
-## Diffusion Maps
-
-``` r
-pbmc <- RunDiffusion(pbmc, genes.use=pbmc@var.genes, q.use=0, 
-                     dims.use=1:20, reduction.use="pca")
-```
-
-    ## Performing eigendecomposition
-    ## Computing Diffusion Coordinates
-    ## Elapsed time: 5.365 seconds
-
-``` r
-DMPlot(pbmc)
-```
-
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
-
 ## Force-directed graphs
+
+We won’t execute this code because the igraph.to.gexf function can take
+a long time and it always seems to crash R right after it finishes. This
+said, I figured I should talk about graph layouts.
+
+This code construct a shared nearest neighbour graph between all cells
+in PCA space (using 20 PCs) and then we convert it to a gexf file that
+can be loaded into the program Gephi, which can be used to visualize
+networks.
+
+``` r
+#library(rgexf)
+#pbmc@meta.data$Cluster <- pbmc@ident
+#pbmc_knn <- scran::buildSNNGraph(t(pbmc@dr$pca@cell.embeddings[,1:20]), k=10, d=NA)
+#gexf <- igraph.to.gexf(pbmc_knn)
+#write.gexf(nodes = gexf$nodes, 
+           #edges = gexf$edges[,c(2,3)], 
+           #nodesAtt = pbmc@meta.data, 
+           #output = "../data/pbmc_graph.gexf")
+```
+
+After importing the gexf file into Gephi and applying the Forceatlas2
+layout algorithm to it, we get our data looks like this: \[PBMC Graph\]
+(<https://github.com/dpcook/scrna_seq_workshop_2018/blob/master/figs/pbmc_forceatlas2.png>)
 
 # Identifying markers
 
-Note that with complex populations, differential expression is a little
-different than typical. If you just run a generic differential
-expression test, it is likely that the majority of genes will be
-differentially expressed because we would simply be looking for
-variation anywhere across the population. A more useful direction in
-this type of “cell type atlasing” experiment is to identify genes whose
-expression uniquely defines a given population.
+With scRNA-Seq, we’re often trying to find marker genes that define each
+of our populations/clusters.
 
-Traditional differential expression can be beneficial when making
-comparisons across subsets of cell types, or between a given population
-across two experimental conditions (eg. Wild-type vs. knockout)
+Two approaches: 1) genes with high fold change vs. all other
+populations, or 2) genes with high classification power (ie. if we find
+a cell that expresses a marker, there’s a good chance that it’s a given
+cell type)
+
+We can do this a cluster at a time with the FindMarkers function, or we
+can find markers for all clusters in one run using FindAllMarkers. This
+function offers 9 different tests that can be used. The current default
+is the Wilcoxon rank sum test. A recent paper benchmarked a large amount
+of differential expression tests, which you can check out
+[here](LINK%20PAPER). Wilcoxon test ranked quite highly in their list.
+
+The only.pos option, when TRUE, will only return positive markers of
+each cluster. Min.pct sets what percentage of cells the gene must be
+detected in. Thresh.use is a log2 fold-change requirement to be
+considered a marker.
+
+``` r
+#This will take 10-15 mins
+pbmc.markers <- FindAllMarkers(object = pbmc, only.pos = TRUE, min.pct = 0.25, 
+    thresh.use = 0.25, print.bar=T, random.seed=2018)
+```
+
+``` r
+#How many markers per cluster
+table(pbmc.markers$cluster)
+```
+
+    ## 
+    ##   0   1   2   3   4   5   6   7   8   9  10  11 
+    ## 558 113 123 100 176 200 173 185 597 639 483 590
+
+Let’s just make a smaller data frame with the top markers (by logFC) of
+each
+group.
+
+``` r
+top_markers <- pbmc.markers %>% group_by(cluster) %>% top_n(1, avg_logFC)
+```
+
+If you look at the fold changes for all the markers, you’ll see that we
+found some pretty strong markers for most populations. Cluster 1 and 3
+don’t seem to have genes that are a *lot* higher, but it’s still pretty
+good.
+
+Let’s visualize the top marker expression across the cells
+
+``` r
+FeaturePlot(object = pbmc, features.plot = top_markers$gene, 
+            cols.use = viridis(100), reduction.use = "tsne",
+            no.axes=T, pt.size=0.5)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+Heatmaps are also a good way at looking at the stratification of
+expression patterns across cells. Let’s make one, showing the top 10
+markers of each cluster
+
+``` r
+top10 <- pbmc.markers %>% group_by(cluster) %>% top_n(10, avg_logFC)
+# setting slim.col.label to TRUE will print just the cluster IDS instead of
+# every cell name
+DoHeatmap(object = pbmc, genes.use = top10$gene, slim.col.label = TRUE, remove.key = TRUE)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 # Pseudotime analysis
 

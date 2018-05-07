@@ -13,3 +13,19 @@ scRNA-Seq results in some pretty massive datasets and without clear objectives f
   +What are the proportions of each cell type?
 * What genes are unique markers for each population?
 * Can we identify phenotypic plasticity within certain cell types?
+
+# Downloading some dependencies
+```{r}
+install.packages("Seurat")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages("gam")
+install.packages("pheatmap")
+install.packages("viridis")
+install.packages("RColorBrewer")
+install.packages("princurve")
+```
+
+
+

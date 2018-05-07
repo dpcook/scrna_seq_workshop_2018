@@ -21,6 +21,18 @@ library(Seurat)
     ## Loading required package: Matrix
 
 ``` r
+library(princurve)
+library(gam)
+```
+
+    ## Loading required package: splines
+
+    ## Loading required package: foreach
+
+    ## Loaded gam 1.15
+
+``` r
+library(pheatmap)
 library(dplyr)
 ```
 
@@ -36,10 +48,25 @@ library(dplyr)
     ##     intersect, setdiff, setequal, union
 
 ``` r
+library(tidyr)
+```
+
+    ## 
+    ## Attaching package: 'tidyr'
+
+    ## The following object is masked from 'package:Matrix':
+    ## 
+    ##     expand
+
+``` r
 library(viridis)
 ```
 
     ## Loading required package: viridisLite
+
+``` r
+library(RColorBrewer)
+```
 
 # Load processed data
 
@@ -63,7 +90,7 @@ section)
 
 We cluster on PCA space, but need to know how many PCs capture a
 reasonable amount of
-variation
+variation.
 
 ``` r
 PCElbowPlot(object = pbmc, num.pc=50)
@@ -72,8 +99,8 @@ PCElbowPlot(object = pbmc, num.pc=50)
 ![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
-pbmc <- FindClusters(object = pbmc, reduction.type = "pca", dims.use = 1:20, 
-    resolution = 0.4, print.output = 0, save.SNN = TRUE, random.seed=2018)
+pbmc <- FindClusters(object = pbmc, reduction.type = "pca", dims.use = 1:30, 
+    resolution = 0.5, print.output = 0, save.SNN = TRUE, random.seed=2018)
 ```
 
 Note that the resolution is a user-defined parameter and can be tweaked
@@ -214,7 +241,7 @@ expression
 values.
 
 ``` r
-pbmc <- RunTSNE(object = pbmc, dims.use = 1:20, do.fast = TRUE)
+pbmc <- RunTSNE(object = pbmc, dims.use = 1:30, do.fast = TRUE, perplexity=30)
 ```
 
 ``` r
@@ -249,7 +276,36 @@ After importing the gexf file into Gephi and applying the Forceatlas2
 layout algorithm to it, we get our data looks like this: \[PBMC Graph\]
 (<https://github.com/dpcook/scrna_seq_workshop_2018/blob/master/figs/pbmc_forceatlas2.png>)
 
-# Identifying markers
+# Annotating clusters
+
+Often after clustering our data we’re interested in finding out which
+cell types each cluster corresponds to. Lucky, many of the cell types
+comprising PBMCs have known markers that can serve as landmarks for us:
+
+CD4 T Cells: IL7R CD8 T Cells: CD8A B Cells: MS4A1 CD14+ Monocytes:
+CD14, LYZ FCGR3A+ Monocytes: FCGR3A, MS4A7 NK Cells: GNLY, NKG7
+Dendritic Cells: FCER1A, CST3 Megakaryocytes: PPBP
+
+So lets see if these genes mark clusters pretty
+cleanly.
+
+``` r
+FeaturePlot(object = pbmc, features.plot = c("IL7R", "CD8A", "MS4A1", "CD14", "LYZ",
+                                             "FCGR3A", "MS4A7", "GNLY", "NKG7", "FCER1A",
+                                             "CST3", "PPBP"), 
+            cols.use = viridis(100), reduction.use = "tsne",
+            no.axes=T, pt.size=0.5)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
+TSNEPlot(pbmc)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-13-2.png)<!-- -->
+
+# Identifying new markers
 
 With scRNA-Seq, we’re often trying to find marker genes that define each
 of our populations/clusters.
@@ -273,7 +329,7 @@ considered a marker.
 
 ``` r
 #This will take 10-15 mins
-pbmc.markers <- FindAllMarkers(object = pbmc, only.pos = TRUE, min.pct = 0.25, 
+pbmc.markers <- FindAllMarkers(object = pbmc, only.pos = TRUE, min.pct = 0.2, 
     thresh.use = 0.25, print.bar=T, random.seed=2018)
 ```
 
@@ -283,8 +339,8 @@ table(pbmc.markers$cluster)
 ```
 
     ## 
-    ##   0   1   2   3   4   5   6   7   8   9  10  11 
-    ## 558 113 123 100 176 200 173 185 597 639 483 590
+    ##   0   1   2   3   4   5   6   7   8   9  10  11  12 
+    ## 628 103 125 102 232 199 181 206 667 657 445 895 501
 
 Let’s just make a smaller data frame with the top markers (by logFC) of
 each
@@ -307,7 +363,7 @@ FeaturePlot(object = pbmc, features.plot = top_markers$gene,
             no.axes=T, pt.size=0.5)
 ```
 
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 Heatmaps are also a good way at looking at the stratification of
 expression patterns across cells. Let’s make one, showing the top 10
@@ -320,11 +376,390 @@ top10 <- pbmc.markers %>% group_by(cluster) %>% top_n(10, avg_logFC)
 DoHeatmap(object = pbmc, genes.use = top10$gene, slim.col.label = TRUE, remove.key = TRUE)
 ```
 
-![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
-# Pseudotime analysis
+Or we can just print them out here to look at
 
-I want to see if I can fit this in here. Any trajectories exist in
-PBMCs?
+``` r
+pbmc.markers %>% group_by(cluster) %>% top_n(10, avg_logFC)
+```
 
-# Functional enrichment (GO Term and Pathway analysis)
+    ## # A tibble: 130 x 7
+    ## # Groups:   cluster [13]
+    ##    p_val avg_logFC pct.1 pct.2 p_val_adj cluster gene         
+    ##    <dbl>     <dbl> <dbl> <dbl>     <dbl> <fct>   <chr>        
+    ##  1     0      3.01 0.997 0.563         0 0       S100A8       
+    ##  2     0      2.94 0.998 0.66          0 0       S100A9       
+    ##  3     0      2.57 0.998 0.619         0 0       LYZ          
+    ##  4     0      2.42 0.91  0.125         0 0       S100A12      
+    ##  5     0      2.25 0.973 0.147         0 0       RP11-1143G9.4
+    ##  6     0      2.13 0.985 0.209         0 0       FCN1         
+    ##  7     0      2.04 0.979 0.164         0 0       MNDA         
+    ##  8     0      2.00 0.998 0.385         0 0       TYROBP       
+    ##  9     0      1.92 0.867 0.101         0 0       VCAN         
+    ## 10     0      1.90 0.962 0.129         0 0       CSTA         
+    ## # ... with 120 more rows
+
+# Exploring dynamics within individual subtypes
+
+## Monocytes
+
+Monocytes are an abundant immune cell type in PBMCs that differentiate
+into macrophages. CD68 and LYZ are common markers of monocytes.
+CD14+/CD16- (FCGR3A) has been used to classify “classical
+monocytes”
+
+``` r
+TSNEPlot(pbmc)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+``` r
+FeaturePlot(object = pbmc, features.plot = c("CD14", "FCGR3A", "LYZ", "CD68"), 
+            cols.use = viridis(100), reduction.use = "tsne",
+            no.axes=T, pt.size=1)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-20-2.png)<!-- -->
+
+CD68 has been considered a pan-monocyte marker, and it seems to light up
+in cluster 0 and 9. This corresponds nicely to the other markers as well
+(Lyz is also expressed in dendritic cells, explaining its presence in
+cluster 10). We also see that the cluster 0 is CD14+/CD16-, which is
+consistent with classical monocytes. The CD16+ population (cluster 9) is
+interesting though\!
+
+Let’s filter our data down to only include clusters 0 and 9
+
+``` r
+monocytes <- SubsetData(pbmc, ident.use=c(0,9), do.center=T, do.scale=T)
+```
+
+    ## Scaling data matrix
+
+We can now “zoom in” on this population and redo PCA/tSNE. We’ll have to
+recalculate our highly-variable
+genes.
+
+``` r
+monocytes <- FindVariableGenes(object = monocytes, mean.function = ExpMean, 
+                          dispersion.function = LogVMR, 
+                          x.low.cutoff = 0.0125, x.high.cutoff = 5, 
+                          y.cutoff = 0.5)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+``` r
+monocytes <- RunPCA(object = monocytes, pc.genes = monocytes@var.genes, 
+                    do.print = TRUE, genes.print=10, pcs.print=1:3,
+                    pcs.compute=50)
+```
+
+    ## [1] "PC1"
+    ##  [1] "FCGR3A"   "RHOC"     "CDKN1C"   "HES4"     "HLA-DPA1" "MTSS1"   
+    ##  [7] "SIGLEC10" "ABI3"     "RPS19"    "MS4A7"   
+    ## [1] ""
+    ##  [1] "S100A8"        "S100A12"       "RP11-1143G9.4" "VCAN"         
+    ##  [5] "MNDA"          "CD14"          "S100A6"        "FCN1"         
+    ##  [9] "MS4A6A"        "SELL"         
+    ## [1] ""
+    ## [1] ""
+    ## [1] "PC2"
+    ##  [1] "FTH1"      "S100A4"    "AIF1"      "LST1"      "S100A6"   
+    ##  [6] "CST3"      "DUSP1"     "HLA-DRA"   "LINC01272" "NEAT1"    
+    ## [1] ""
+    ##  [1] "CD2"    "CD3E"   "TRAC"   "CD3D"   "IL32"   "TRAT1"  "IL7R"  
+    ##  [8] "CD3G"   "OCIAD2" "IFITM1"
+    ## [1] ""
+    ## [1] ""
+    ## [1] "PC3"
+    ##  [1] "FCGR3A"         "CDKN1C"         "S100A4"         "ALOX5AP"       
+    ##  [5] "CKB"            "STXBP2"         "S100A12"        "RP11-1008C21.1"
+    ##  [9] "MEG3"           "S100A6"        
+    ## [1] ""
+    ##  [1] "HLA-DRA"  "CD74"     "HLA-DRB1" "LGALS2"   "HLA-DPB1" "HLA-DQA1"
+    ##  [7] "HLA-DMA"  "HLA-DPA1" "CST3"     "PID1"    
+    ## [1] ""
+    ## [1] ""
+
+``` r
+PCAPlot(object = monocytes)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+Perhaps as expected, the largest source of variation (PC1) separates the
+cells based on their cluster. What’s kind of interesting is that it’s a
+continuum and not distinct populations. Does this represent some
+interesting biological spectrum? Let’s look at the expression of the
+genes with the highest loadings for PC1 (printed out above)
+
+``` r
+FeaturePlot(object = monocytes, reduction.use="pca",
+            features.plot = c("FCGR3A", "RHOC", "CDKN1C", "S100A8", "S100A12", "CD14"),
+            cols.use=viridis(100)) 
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+
+There is actually quite a clear gradient\! Very cool. Let’s just check
+the structure of the other
+PCs
+
+``` r
+PCAPlot(object = monocytes, dim.1=1, dim.2=3)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+``` r
+PCAPlot(object = monocytes, dim.1=1, dim.2=4)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->
+
+``` r
+PCAPlot(object = monocytes, dim.1=1, dim.2=5)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-26-3.png)<!-- -->
+
+``` r
+PCAPlot(object = monocytes, dim.1=1, dim.2=6)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-26-4.png)<!-- -->
+
+PC3 is the only other PC that seems to have a shape that varies in a
+structured way (doesn’t mean the others aren’t important, but PC3 seems
+like it could be related to the phenotypic continuum along PC1)
+
+### Pseudotime w/ principal curve
+
+``` r
+curve <- principal.curve(monocytes@dr$pca@cell.embeddings[,c(1,3)])
+plot(curve)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+
+The lambda vector returned in the “curve” variable contains a value of
+each cell’s *distance* along length of the curve. The tag vector is each
+cell’s *order* along the curve. We’ll use the lambda value to represent
+each cells’ pseudotemporal position
+
+We’ll add the lambda values into the metadata table of our Seurat object
+
+``` r
+monocytes@meta.data$Pseudotime <- curve$lambda
+```
+
+And now we can plot our PCA, colouring each cell by their pseudotemporal
+value
+
+``` r
+FeaturePlot(monocytes, reduction.use="pca", cols.use=viridis(100),
+            features.plot="Pseudotime", dim.1=1, dim.2=3)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+### Pseudotime: Differential expression
+
+Now that we’ve applied a pseudotime value to all cells, we can look for
+genes whose expression changes as a function of pseudotemporal
+progression.
+
+We’ll use the LOESS method to model smooth, non-linear expression
+patterns using the “gam” package.
+
+``` r
+exp <- monocytes@scale.data
+pseudo_results <- apply(exp,1,function(g){
+  data <- data.frame(Gene=g, Pseudotime=monocytes@meta.data$Pseudotime)
+  tmp <- gam(g ~ lo(Pseudotime), data=data) #the lo() tells it to use LOESS
+  p <- summary(tmp)[4][[1]][1,5]
+  p
+})
+pseudo_results <- as.data.frame(pseudo_results)
+colnames(pseudo_results) <- "gam.pval"
+pseudo_results$q.value <- p.adjust(pseudo_results$gam.pval)
+pseudo_results$gene <- rownames(pseudo_results)
+nrow(filter(pseudo_results, q.value <= 0.05))
+```
+
+    ## [1] 1538
+
+And we can visualize these genes in a heatmap, ordering cells by their
+Pseudotime value
+
+``` r
+sig_genes <- filter(pseudo_results, q.value <= 0.05)$gene
+cell_order <- curve$tag
+exp <- monocytes@scale.data[sig_genes, cell_order]
+hist(exp, breaks=50)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+Note that the range is quite wild. For a more-effective visualization on
+the heatmap, we can set upper and lower-bounds. You’ll typically see
+this set somewhere between 2-3
+
+``` r
+exp.z <- exp #one we can manipulate a little here
+exp.z[exp.z>2] <- 2
+exp.z[exp.z<(-2)] <- (-2)
+```
+
+``` r
+bluered <- rev(colorRampPalette(brewer.pal(9, "RdBu"))(100))#Make a color palette
+heatmap <- pheatmap(exp.z,
+                    color=bluered,
+                    cluster_cols=F, #we manually ordered the cells--don't cluster
+                    cutree_row=5,
+                    cluster_rows=T, #we want genes to cluster
+                    clustering_method="ward.D2",
+                    show_rownames=F,
+                    show_colnames=F)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+
+And we can retrieve the genes that fall in each cluster
+
+``` r
+gene_clusters <- as.data.frame(cutree(heatmap$tree_row, k=5))
+colnames(gene_clusters) <- "Cluster"
+gene_clusters$Cluster <- factor(gene_clusters$Cluster)
+gene_clusters$Gene <- rownames(gene_clusters)
+```
+
+What is the order of the clusters down the heatmap?
+
+``` r
+unique(gene_clusters$Cluster[heatmap$tree_row$order])
+```
+
+    ## [1] 5 3 2 4 1
+    ## Levels: 1 2 3 4 5
+
+How many genes per cluster
+
+``` r
+summary(gene_clusters$Cluster)
+```
+
+    ##    1    2    3    4    5 
+    ## 1126  190  168   37   17
+
+We can save the results if we want to do gene ontology enrichment
+analysis outside of R
+
+``` r
+write.csv(gene_clusters, file="../output/monocytes_gene_clusters.csv")
+```
+
+We can also look at the expression of individual genes throughout
+pseudotime
+
+``` r
+plot_gene <- function(x){
+  gene_data <- data.frame(Pseudotime=monocytes@meta.data$Pseudotime,
+                          Exp = exp[x,])
+  gene_plot <- ggplot(gene_data, aes(x=Pseudotime, y=Exp)) +
+    geom_point(colour="black", alpha=0.25) +
+    geom_smooth(colour="firebrick") +
+    ylab(paste0(x, " Expression")) +
+    theme_classic()
+  ggsave(gene_plot, file=paste0("../figs/monocytes_",x,"_pseudotime.png"),
+         width=3.5, height=2.5)
+  gene_plot
+}
+```
+
+``` r
+head(arrange(pseudo_results, q.value))
+```
+
+    ##        gam.pval       q.value    gene
+    ## 1  0.000000e+00  0.000000e+00  S100A9
+    ## 2  0.000000e+00  0.000000e+00 S100A12
+    ## 3  0.000000e+00  0.000000e+00  S100A8
+    ## 4  0.000000e+00  0.000000e+00  FCGR3A
+    ## 5  0.000000e+00  0.000000e+00     LYZ
+    ## 6 1.218369e-310 2.014207e-306    RHOC
+
+``` r
+plot_gene("S100A9")
+```
+
+    ## `geom_smooth()` using method = 'gam'
+    ## `geom_smooth()` using method = 'gam'
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+
+``` r
+plot_gene("S100A12")
+```
+
+    ## `geom_smooth()` using method = 'gam'
+    ## `geom_smooth()` using method = 'gam'
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-40-2.png)<!-- -->
+
+``` r
+plot_gene("S100A8")
+```
+
+    ## `geom_smooth()` using method = 'gam'
+    ## `geom_smooth()` using method = 'gam'
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-40-3.png)<!-- -->
+
+``` r
+plot_gene("FCGR3A")
+```
+
+    ## `geom_smooth()` using method = 'gam'
+    ## `geom_smooth()` using method = 'gam'
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-40-4.png)<!-- -->
+
+``` r
+plot_gene("LYZ")
+```
+
+    ## `geom_smooth()` using method = 'gam'
+    ## `geom_smooth()` using method = 'gam'
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-40-5.png)<!-- -->
+
+``` r
+plot_gene("HLA-DPB1")
+```
+
+    ## `geom_smooth()` using method = 'gam'
+    ## `geom_smooth()` using method = 'gam'
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-40-6.png)<!-- -->
+
+#### Why tSNE can be misleading
+
+I just wanted to bring up that tSNE seems to be peoples’ default
+visualization for large single-cell datasets, but it can be misleading\!
+Notice that tSNE does not pull out any sort of continuous structure in
+the data
+here.
+
+``` r
+monocytes <- RunTSNE(object = monocytes, dims.use = 1:10, do.fast = TRUE, perplexity=30)
+```
+
+``` r
+TSNEPlot(monocytes)
+```
+
+![](02_downstream_analysis_files/figure-gfm/unnamed-chunk-42-1.png)<!-- -->

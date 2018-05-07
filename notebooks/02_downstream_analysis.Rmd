@@ -9,6 +9,7 @@ output:
 ```{r}
 library(Seurat)
 library(princurve)
+library(gam)
 library(pheatmap)
 library(dplyr)
 library(tidyr)
@@ -292,9 +293,10 @@ pseudo_results <- apply(exp,1,function(g){
   p
 })
 pseudo_results <- as.data.frame(pseudo_results)
+colnames(pseudo_results) <- "gam.pval"
 pseudo_results$q.value <- p.adjust(pseudo_results$gam.pval)
-nrow(filter(pseudo_results, q.value <= 0.05))
 pseudo_results$gene <- rownames(pseudo_results)
+nrow(filter(pseudo_results, q.value <= 0.05))
 ```
 
 And we can visualize these genes in a heatmap, ordering cells by their Pseudotime value
